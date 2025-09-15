@@ -1,5 +1,6 @@
 package com.example.userservice.controller;
 
+import com.example.userservice.dto.UserDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,23 +19,29 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public List<User> getAll() {
-        return userService.getAll();
+    public List<UserDto> getAll() {
+        return userService.getAll()
+                .stream()
+                .map(user -> new UserDto(user.getId(), user.getEmail(), user.getRole()))
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable Long id) {
-        return userService.getById(id);
+    public UserDto getById(@PathVariable Long id) {
+        User user = userService.getById(id);
+        return new UserDto(user.getId(), user.getEmail(), user.getRole());
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
-        return userService.create(user);
+    public UserDto create(@RequestBody User user) {
+        User saved = userService.create(user);
+        return new UserDto(saved.getId(), saved.getEmail(), saved.getRole());
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User user) {
-        return userService.update(id, user);
+    public UserDto update(@PathVariable Long id, @RequestBody User user) {
+        User saved = userService.update(id, user);
+        return new UserDto(saved.getId(), saved.getEmail(), saved.getRole());
     }
 
     @DeleteMapping("/{id}")
