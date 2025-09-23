@@ -1,10 +1,14 @@
 package com.example.userservice.service;
 
+import com.example.userservice.dto.UserRequestDto;
 import com.example.userservice.exception.UserNotFoundException;
+import com.example.userservice.mapper.UserMapper;
 import com.example.userservice.model.User;
 import com.example.userservice.repository.UserRepository;
+import com.example.userservice.security.PasswordHash;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,6 +17,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public List<User> getAll() {
         return userRepository.findAll();
@@ -23,15 +28,25 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
     }
 
-    public User create(User user) {
+    @Transactional
+    public User create(UserRequestDto dto) throws Exception {
+        User user = userMapper.toEntity(dto);
+        user.setPassword(PasswordHash.hash(dto.getPassword()));
         return userRepository.save(user);
     }
 
-    public User update(Long id, User userUpdated) {
+    @Transactional
+    public User update(Long id, UserRequestDto dto) throws Exception{
         User user = getById(id);
-        user.setEmail(userUpdated.getEmail());
-        user.setPassword(userUpdated.getPassword());
-        user.setRole(userUpdated.getRole());
+        if (dto.getEmail() != null){
+            user.setEmail(dto.getEmail());
+        }
+        if (dto.getPassword() != null){
+            user.setPassword(PasswordHash.hash(dto.getPassword()));
+        }
+        if (dto.getRole() != null){
+            user.setRole(dto.getRole());
+        }
         return userRepository.save(user);
     }
 

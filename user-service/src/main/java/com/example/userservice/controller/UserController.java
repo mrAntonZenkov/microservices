@@ -1,6 +1,11 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.UserDto;
+import com.example.userservice.dto.UserRequestDto;
+import com.example.userservice.mapper.UserMapper;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,31 +22,30 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @GetMapping
     public List<UserDto> getAll() {
         return userService.getAll()
                 .stream()
-                .map(user -> new UserDto(user.getId(), user.getEmail(), user.getRole()))
+                .map(userMapper::toDto)
                 .toList();
     }
 
     @GetMapping("/{id}")
     public UserDto getById(@PathVariable Long id) {
-        User user = userService.getById(id);
-        return new UserDto(user.getId(), user.getEmail(), user.getRole());
+        return userMapper.toDto(userService.getById(id));
     }
 
     @PostMapping
-    public UserDto create(@RequestBody User user) {
-        User saved = userService.create(user);
-        return new UserDto(saved.getId(), saved.getEmail(), saved.getRole());
+    public UserDto create(@Valid @RequestBody UserRequestDto dto) throws Exception{
+        User user = userService.create(dto);
+        return userMapper.toDto(user);
     }
 
     @PutMapping("/{id}")
-    public UserDto update(@PathVariable Long id, @RequestBody User user) {
-        User saved = userService.update(id, user);
-        return new UserDto(saved.getId(), saved.getEmail(), saved.getRole());
+    public UserDto update(@PathVariable Long id, @Valid @RequestBody UserRequestDto dto) throws Exception{
+        return userMapper.toDto(userService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
