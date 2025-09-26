@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+
+
+server:
+  port: 8081
+
+jwt:
+  secret: "super-secret-key"
+  expiration: 3600000       # 1 час
+  refresh-expiration: 86400000  # 1 день
+
+logging:
+  level:
+    root: INFO
+    com.example.auth: DEBUG
