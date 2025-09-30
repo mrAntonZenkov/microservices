@@ -10,20 +10,25 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtService jwtService;
 
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
+    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JwtService jwtService) {
         this.refreshTokenRepository = refreshTokenRepository;
+        this.jwtService = jwtService;
     }
 
     public RefreshToken createRefreshToken(Long userId) {
         RefreshToken token = new RefreshToken();
-        token.setToken(UUID.randomUUID().toString());
+        token.setToken(UUID.randomUUID().toString()); // просто уникальный идентификатор
         token.setUserId(userId);
         token.setRevoked(false);
         return refreshTokenRepository.save(token);
     }
 
     public RefreshToken validateRefreshToken(String token) {
+        // проверка подписи и срока жизни через JwtService
+        jwtService.parseToken(token);
+
         RefreshToken rt = refreshTokenRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 

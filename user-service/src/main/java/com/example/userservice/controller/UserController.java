@@ -4,12 +4,10 @@ import com.example.userservice.dto.UserDto;
 import com.example.userservice.dto.UserRequestDto;
 import com.example.userservice.mapper.UserMapper;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.userservice.model.User;
+import com.example.userservice.entity.User;
 import com.example.userservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

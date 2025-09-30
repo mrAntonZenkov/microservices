@@ -1,7 +1,7 @@
 package com.example.userservice.dto;
 
 
-import com.example.userservice.model.Role;
+import com.example.userservice.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 

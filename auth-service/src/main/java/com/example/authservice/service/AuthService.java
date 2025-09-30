@@ -8,7 +8,6 @@ import com.example.authservice.entity.RefreshToken;
 import com.example.authservice.entity.Role;
 import com.example.authservice.entity.User;
 import com.example.authservice.repository.UserRepository;
-import com.example.authservice.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
-    private final KafkaProducerService kafkaProducerService;;
+    private final KafkaProducerService kafkaProducerService;
 
 
     public AuthResponse register(UserRegisterRequest request) {
@@ -33,7 +32,7 @@ public class AuthService {
         user.setEmail(request.email());
         user.setPasswordHash(hashPassword(request.password()));
         user.setRoles(Role.ROLE_USER);
-        user.setEnabled(true);
+        user.setEnabled(false);
 
         User saved = userRepository.save(user);
 
@@ -59,14 +58,29 @@ public class AuthService {
         User user = userRepository.findById(token.getUserId())
                 .orElseThrow(() -> new IllegalStateException("User not found"));
 
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRoles().name());
-        return new AuthResponse(accessToken, refreshRequest.refreshToken());
+        String newAccessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRoles().name()
+        );
+
+        return new AuthResponse(newAccessToken, refreshRequest.refreshToken());
     }
 
     private AuthResponse generateTokens(User user) {
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRoles().name());
-        String refreshToken = refreshTokenService.createRefreshToken(user.getId()).getToken();
-        return new AuthResponse(accessToken, refreshToken);
+        String accessToken = jwtService.generateAccessToken(
+                user.getId(),
+                user.getEmail(),
+                user.getRoles().name()
+        );
+
+        RefreshToken savedToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return new AuthResponse(accessToken, savedToken.getToken());
+    }
+
+    public void logout(String refreshToken) {
+        refreshTokenService.revokeToken(refreshToken);
     }
 
     private String hashPassword(String password) {

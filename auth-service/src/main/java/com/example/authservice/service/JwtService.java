@@ -43,16 +43,6 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateRefreshToken(Long userId, String email) {
-        return Jwts.builder()
-                .setId(userId.toString())
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
     public Jws<Claims> parseToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
