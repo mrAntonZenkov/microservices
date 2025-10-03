@@ -1,18 +1,19 @@
 package com.example.authservice.controller;
 
-import com.example.authservice.dto.AuthResponse;
 import com.example.authservice.dto.LoginRequest;
-import com.example.authservice.dto.RefreshRequest;
-import com.example.authservice.dto.UserRegisterRequest;
+import com.example.authservice.dto.RegisterRequest;
+import com.example.authservice.dto.TokenResponse;
 import com.example.authservice.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -21,18 +22,48 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public AuthResponse register(@Valid @RequestBody UserRegisterRequest request) {
-        return authService.register(request);
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        var tokens = authService.login(request.email(), request.password());
+
+        var response = new TokenResponse(
+                tokens.get("accessToken"),
+                tokens.get("refreshToken"),
+                Long.parseLong(tokens.get("expiresIn"))
+        );
+
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest loginRequest) {
-        return authService.login(loginRequest);
+    @PostMapping("/register")
+    public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
+        var tokens = authService.register(request.email(), request.password());
+
+        var response = new TokenResponse(
+                tokens.get("accessToken"),
+                tokens.get("refreshToken"),
+                Long.parseLong(tokens.get("expiresIn"))
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/refresh")
-    public AuthResponse refresh(@RequestBody RefreshRequest refreshRequest) {
-        return authService.refresh(refreshRequest);
+    public ResponseEntity<TokenResponse> refreshToken(@RequestParam String refreshToken) {
+        var tokens = authService.refreshToken(refreshToken);
+
+        var response = new TokenResponse(
+                tokens.get("accessToken"),
+                tokens.get("refreshToken"),
+                Long.parseLong(tokens.get("expiresIn"))
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestParam String refreshToken) {
+        authService.logout(refreshToken);
+        return ResponseEntity.ok().build();
     }
 }
