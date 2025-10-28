@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.product.grpc";
+option java_outer_classname = "ProductProto";
+
+service ProductService {
+  rpc CreateProduct (ProductRequest) returns (ProductResponse);
+  rpc GetProductById (ProductIdRequest) returns (ProductResponse);
+  rpc UpdateProduct (UpdateProductRequest) returns (ProductResponse);
+  rpc DeleteProduct (ProductIdRequest) returns (EmptyResponse);
+  rpc PublishProduct (ProductIdRequest) returns (ProductResponse);
+  rpc HideProduct (ProductIdRequest) returns (ProductResponse);
+  rpc SearchProducts (SearchProductsRequest) returns (SearchProductsResponse);
+}
+
+message ProductRequest {
+  string name = 1;
+  string description = 2;
+  double price = 3;
+  string category = 4;
+}
+
+message UpdateProductRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string category = 5;
+}
+
+message ProductIdRequest {
+  string id = 1;
+}
+
+message ProductResponse {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string category = 5;
+  bool published = 6;
+}
+
+message SearchProductsRequest {
+  string text = 1;
+  string category = 2;
+  double minPrice = 3;
+  double maxPrice = 4;
+}
+
+message SearchProductsResponse {
+  repeated ProductResponse products = 1;
+}
+
+message EmptyResponse {}
