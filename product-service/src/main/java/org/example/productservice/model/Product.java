@@ -8,9 +8,9 @@ public class Product {
     @Id
     private String id;
     private String name;
-    private String description; // для текстового поиска
+    private String description;
     private double price;
-    private String category; // для фильтрации по категории
+    private String category;
     private boolean published = false;
 
     public Product() {

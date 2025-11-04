@@ -61,7 +61,7 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(id));
         product.setPublished(true);
         repository.save(product);
-        publishEvent("PUBLISHED", product); // событие Kafka
+        publishEvent("PUBLISHED", product);
         return mapper.toResponse(mapper.toDTO(product));
     }
 
@@ -71,7 +71,7 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(id));
         product.setPublished(false);
         repository.save(product);
-        publishEvent("HIDDEN", product); // событие Kafka
+        publishEvent("HIDDEN", product);
         return mapper.toResponse(mapper.toDTO(product));
     }
 
