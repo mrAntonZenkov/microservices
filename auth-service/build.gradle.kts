@@ -72,7 +72,7 @@ tasks.named("compileJava") {
 sourceSets {
 	main {
 		java {
-			srcDir("build/generated-sources/avro/main/java") // где окажется UserCreated
+			srcDir("build/generated-sources/avro/main/java")
 		}
 	}
 }

@@ -1,0 +1,31 @@
+{
+  "namespace": "org.example.productservice.avro",
+  "type": "record",
+  "name": "ProductEvent",
+  "fields": [
+    {
+      "name": "productId",
+      "type": "string"
+    },
+    {
+      "name": "title",
+      "type": "string"
+    },
+    {
+      "name": "description",
+      "type": "string"
+    },
+    {
+      "name": "price",
+      "type": "string"
+    },
+    {
+      "name": "category",
+      "type": "string"
+    },
+    {
+      "name": "published",
+      "type": "boolean"
+    }
+  ]
+}

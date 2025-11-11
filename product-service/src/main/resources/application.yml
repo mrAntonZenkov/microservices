@@ -18,6 +18,8 @@ spring:
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
         schema.registry.url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
+    topic:
+      product-events: ${PRODUCT_EVENTS_TOPIC:product.events}
 
 
   security:
