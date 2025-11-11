@@ -25,7 +25,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
-    implementation(project(":common-grpc"))
+//    implementation(project(":common-grpc"))
+
 
     implementation("io.grpc:grpc-stub:1.76.0")
     implementation("io.grpc:grpc-protobuf:1.76.0")
