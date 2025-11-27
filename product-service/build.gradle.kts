@@ -2,7 +2,6 @@ import com.google.protobuf.gradle.id
 
 plugins {
     java
-    id("java")
     id("org.springframework.boot") version "3.5.7"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.4"
@@ -30,19 +29,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("io.grpc:grpc-services")
-    implementation("org.springframework.grpc:spring-grpc-server-web-spring-boot-starter")
 
     implementation("org.apache.kafka:kafka-clients:4.1.0")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("org.apache.avro:avro:1.12.0")
     implementation("io.confluent:kafka-avro-serializer:8.0.0")
 
-    implementation("io.grpc:grpc-stub:1.76.0")
-    implementation("io.grpc:grpc-protobuf:1.76.0")
-    implementation("io.grpc:grpc-api:1.76.0")
+    implementation(project(":common-grpc"))
+    implementation("org.springframework.grpc:spring-grpc-server-web-spring-boot-starter")
 
-    implementation("io.grpc:grpc-netty:1.76.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")

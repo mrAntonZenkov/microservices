@@ -14,8 +14,10 @@ java {
     }
 }
 
+tasks.register("prepareKotlinBuildScriptModel"){}
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
 extra["springCloudVersion"] = "2025.0.0"
@@ -25,13 +27,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
-//    implementation(project(":common-grpc"))
+    implementation(project(":common-grpc"))
 
-
-    implementation("io.grpc:grpc-stub:1.76.0")
-    implementation("io.grpc:grpc-protobuf:1.76.0")
-    implementation("io.grpc:grpc-api:1.76.0")
-    implementation("io.grpc:grpc-netty:1.76.0")
     implementation("net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE")
 
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
@@ -39,6 +36,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
