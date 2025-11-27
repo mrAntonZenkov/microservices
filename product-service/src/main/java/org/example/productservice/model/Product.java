@@ -3,15 +3,18 @@ package org.example.productservice.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
+
 @Document(collection = "products")
 public class Product {
     @Id
     private String id;
-    private String name;
+    private String title;
     private String description;
-    private double price;
+    private BigDecimal price;
     private String category;
-    private boolean published = false;
+    private boolean published;
+
 
     public Product() {
     }
@@ -24,19 +27,19 @@ public class Product {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -46,5 +49,21 @@ public class Product {
 
     public void setPublished(boolean published) {
         this.published = published;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

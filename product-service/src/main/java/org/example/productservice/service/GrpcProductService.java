@@ -1,112 +1,136 @@
 package org.example.productservice.service;
 
 
+import com.example.product.grpc.CreateProductRequest;
+import com.example.product.grpc.DeleteProductRequest;
 import com.example.product.grpc.EmptyResponse;
-import com.example.product.grpc.ProductIdRequest;
-import com.example.product.grpc.ProductRequest;
+import com.example.product.grpc.GetProductByIdRequest;
+import com.example.product.grpc.HideProductRequest;
 import com.example.product.grpc.ProductResponse;
 import com.example.product.grpc.ProductServiceGrpc;
+import com.example.product.grpc.PublishProductRequest;
 import com.example.product.grpc.SearchProductsRequest;
 import com.example.product.grpc.SearchProductsResponse;
 import com.example.product.grpc.UpdateProductRequest;
 import io.grpc.stub.StreamObserver;
-import org.example.productservice.dto.ProductRequestDTO;
-import org.example.productservice.dto.ProductResponseDTO;
+import org.example.productservice.model.Product;
 import org.springframework.grpc.server.service.GrpcService;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @GrpcService
 public class GrpcProductService extends ProductServiceGrpc.ProductServiceImplBase {
 
-    private final ProductService service;
+    private final ProductService productService;
 
-    public GrpcProductService(ProductService service) {
-        this.service = service;
+    public GrpcProductService(ProductService productService) {
+        this.productService = productService;
     }
 
     @Override
-    public void createProduct(ProductRequest request,
-                              StreamObserver<ProductResponse> responseObserver) {
-        ProductRequestDTO dto = new ProductRequestDTO(request.getName(),
+    public void createProduct(CreateProductRequest request, StreamObserver<ProductResponse> responseObserver) {
+        Product created = productService.create(request.getTitle(),
                 request.getDescription(),
-                request.getPrice(),
+                new BigDecimal(request.getPrice()),
                 request.getCategory());
-        ProductResponseDTO responseDTO = service.create(dto);
-
-        responseObserver.onNext(toProto(responseDTO));
+        responseObserver.onNext(toGrpcProduct(created));
         responseObserver.onCompleted();
     }
 
-    @Override
-    public void getProductById(ProductIdRequest request,
-                               StreamObserver<ProductResponse> responseObserver) {
-        ProductResponseDTO responseDTO = service.getById(request.getId());
-        responseObserver.onNext(toProto(responseDTO));
-        responseObserver.onCompleted();
-    }
 
     @Override
-    public void updateProduct(UpdateProductRequest request,
-                              StreamObserver<ProductResponse> responseObserver) {
-        ProductRequestDTO dto = new ProductRequestDTO(request.getName(),
+    public void updateProduct(UpdateProductRequest request, StreamObserver<ProductResponse> responseObserver) {
+        Optional<Product> updated = productService.update(request.getId(),
+                request.getTitle(),
                 request.getDescription(),
-                request.getPrice(),
+                new BigDecimal(request.getPrice()),
                 request.getCategory());
-        ProductResponseDTO responseDTO = service.update(request.getId(), dto);
-        responseObserver.onNext(toProto(responseDTO));
-        responseObserver.onCompleted();
+        handleOptionalProduct(updated, request.getId(), responseObserver);
     }
 
-    @Override
-    public void deleteProduct(ProductIdRequest request,
-                              StreamObserver<EmptyResponse> responseObserver) {
-        service.delete(request.getId());
-        responseObserver.onNext(EmptyResponse.newBuilder().build());
-        responseObserver.onCompleted();
-    }
 
     @Override
-    public void publishProduct(ProductIdRequest request,
-                               StreamObserver<ProductResponse> responseObserver) {
-        ProductResponseDTO responseDTO = service.publishProduct(request.getId());
-        responseObserver.onNext(toProto(responseDTO));
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void hideProduct(ProductIdRequest request,
-                            StreamObserver<ProductResponse> responseObserver) {
-        ProductResponseDTO responseDTO = service.hideProduct(request.getId());
-        responseObserver.onNext(toProto(responseDTO));
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void searchProducts(SearchProductsRequest request,
-                               StreamObserver<SearchProductsResponse> responseObserver) {
-        List<ProductResponseDTO> results = service.search(request.getText(),
-                request.getCategory(),
-                request.getMinPrice() != 0.0 ? request.getMinPrice() : null,
-                request.getMaxPrice() != 0.0 ? request.getMaxPrice() : null);
-
-        SearchProductsResponse.Builder builder = SearchProductsResponse.newBuilder();
-        for (ProductResponseDTO dto : results) {
-            builder.addProducts(toProto(dto));
+    public void deleteProduct(DeleteProductRequest request, StreamObserver<EmptyResponse> responseObserver) {
+        boolean success = productService.delete(request.getId());
+        if (success) {
+            responseObserver.onNext(EmptyResponse.newBuilder().build());
+            responseObserver.onCompleted();
+        } else {
+            responseObserver.onError(io.grpc.Status.NOT_FOUND
+                    .withDescription("Product with id " + request.getId() + " not found")
+                    .asRuntimeException());
         }
-        responseObserver.onNext(builder.build());
+    }
+
+
+    @Override
+    public void publishProduct(PublishProductRequest request, StreamObserver<ProductResponse> responseObserver) {
+        Optional<Product> updated = productService.publishProduct(request.getId());
+        handleOptionalProduct(updated, request.getId(), responseObserver);
+    }
+
+
+    @Override
+    public void hideProduct(HideProductRequest request, StreamObserver<ProductResponse> responseObserver) {
+        Optional<Product> updated = productService.hideProduct(request.getId());
+        handleOptionalProduct(updated, request.getId(), responseObserver);
+    }
+
+
+    @Override
+    public void getProductById(GetProductByIdRequest request, StreamObserver<ProductResponse> responseObserver) {
+        Optional<Product> product = productService.getById(request.getId());
+        handleOptionalProduct(product, request.getId(), responseObserver);
+    }
+
+
+    @Override
+    public void searchProducts(SearchProductsRequest request, StreamObserver<SearchProductsResponse> responseObserver) {
+        BigDecimal minPrice = request.getMinPrice().isEmpty() ? null : new BigDecimal(request.getMinPrice());
+        BigDecimal maxPrice = request.getMaxPrice().isEmpty() ? null : new BigDecimal(request.getMaxPrice());
+
+
+        List<Product> products = productService.searchProducts(request.getText(),
+                request.getCategory().isEmpty() ? null : request.getCategory(),
+                minPrice,
+                maxPrice,
+                request.getOnlyPublished());
+
+        SearchProductsResponse response = SearchProductsResponse.newBuilder()
+                .addAllProducts(products.stream().map(this::toGrpcProduct).collect(Collectors.toList()))
+                .build();
+
+        responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 
-    private ProductResponse toProto(ProductResponseDTO dto) {
+
+    private void handleOptionalProduct(Optional<Product> optionalProduct, String productId, StreamObserver<ProductResponse> responseObserver) {
+        optionalProduct.ifPresentOrElse(
+                product -> {
+                    responseObserver.onNext(toGrpcProduct(product));
+                    responseObserver.onCompleted();
+                },
+                () -> responseObserver.onError(
+                        io.grpc.Status.NOT_FOUND
+                                .withDescription("Product with id " + productId + " not found")
+                                .asRuntimeException()));
+    }
+
+
+    private ProductResponse toGrpcProduct(Product product) {
         return ProductResponse.newBuilder()
-                .setId(dto.getId())
-                .setName(dto.getName())
-                .setDescription(dto.getDescription())
-                .setPrice(dto.getPrice())
-                .setCategory(dto.getCategory())
-                .setPublished(dto.isPublished())
+                .setId(product.getId())
+                .setTitle(product.getTitle())
+                .setDescription(product.getDescription())
+                .setPrice(product.getPrice().toString())
+                .setCategory(product.getCategory())
+                .setPublished(product.isPublished())
                 .build();
     }
 }
+
