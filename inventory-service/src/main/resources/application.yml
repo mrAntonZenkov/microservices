@@ -1,0 +1,61 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: inventory-service
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/inventorydb
+    username: inventory
+    password: inventory
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    properties:
+      schema.registry.url: http://schema-registry:8081
+
+    consumer:
+      group-id: inventory-service-group
+      auto-offset-reset: earliest
+
+    streams:
+      application-id: inventory-streams
+      bootstrap-servers: kafka:9092
+      properties:
+        schema.registry.url: http://schema-registry:8081
+        default.key.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+        default.value.serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+
+grpc:
+  server:
+    port: 9092
+    enable-reflection: true
+
+  client:
+    product-service:
+      address: static://product-service:9091
+      negotiationType: plaintext
+
+logging:
+  level:
+    root: INFO
+  pattern:
+    console: '{"timestamp":"%d{yyyy-MM-dd HH:mm:ss}","level":"%p","logger":"%c","message":"%m"}'
+
+otel:
+  exporter:
+    otlp:
+      endpoint: http://jaeger:4317
+  resource:
+    attributes:
+      service.name: inventory-service

@@ -19,14 +19,21 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url = uri("https://packages.confluent.io/maven/") }
 }
 
-extra["springGrpcVersion"] = "0.12.0"
+extra["springGrpcVersion"] = "0.11.0"
 
 dependencies {
-    implementation("io.grpc:grpc-services")
+
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    implementation(project(":common-grpc"))
+    implementation("org.springframework.grpc:spring-grpc-server-web-spring-boot-starter")
+    
     implementation("org.apache.kafka:kafka-streams")
-    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
+
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.grpc:spring-grpc-test")

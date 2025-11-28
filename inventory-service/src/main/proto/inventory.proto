@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.example.inventory.grpc"; // пакет для сгенерированных классов
+option java_outer_classname = "InventoryProto";
+
+package inventory;
+
+service InventoryService {
+  rpc CheckAndReserve(InventoryCheckRequest) returns (InventoryCheckResponse);
+}
+
+message InventoryCheckRequest {
+  int64 orderId = 1;
+  repeated Item items = 2;
+
+  message Item {
+    int64 productId = 1;
+    int32 quantity = 2;
+  }
+}
+
+message InventoryCheckResponse {
+  bool success = 1;
+}
