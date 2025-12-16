@@ -16,7 +16,7 @@ public interface OrderMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", constant = "NEW")
-    @Mapping(target = "items", ignore = true) // Будем обрабатывать отдельно
+    @Mapping(target = "items", ignore = true)
     @Mapping(target = "comment", source = "comment")
     Order toEntity(CreateOrderRequest request);
 

@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class InventoryGrpcClient {
 
-    @GrpcClient("inventory-service") // имя сервиса в application.yml / bootstrap
+    @GrpcClient("inventory-service")
     private InventoryServiceGrpc.InventoryServiceBlockingStub stub;
 
     public boolean reserveItems(Long orderId, List<OrderItem> items) {

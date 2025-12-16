@@ -1,0 +1,11 @@
+{
+  "namespace": "org.example.orderservice.avro",
+  "type": "record",
+  "name": "InventoryReserved",
+  "fields": [
+    {"name": "orderId", "type": "long"},
+    {"name": "success", "type": "boolean"},
+    {"name": "message", "type": ["null", "string"], "default": null},
+    {"name": "timestamp", "type": "string"}
+  ]
+}

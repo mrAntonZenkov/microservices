@@ -1,0 +1,19 @@
+{
+  "namespace": "org.example.orderservice.avro",
+  "type": "record",
+  "name": "OrderCreated",
+  "fields": [
+    {"name": "orderId", "type": "long"},
+    {"name": "userId", "type": "long"},
+    {"name": "items", "type": {"type": "array", "items": {
+      "type": "record",
+      "name": "OrderItem",
+      "fields": [
+        {"name": "productId", "type": "long"},
+        {"name": "quantity", "type": "int"},
+        {"name": "price", "type": "long"}
+      ]
+    }}},
+    {"name": "timestamp", "type": "string"}
+  ]
+}

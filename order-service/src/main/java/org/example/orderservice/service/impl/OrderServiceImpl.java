@@ -42,7 +42,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = mapper.toEntity(request);
         order.setUserId(userId);
 
-        // Привязка OrderItem к Order
         List<OrderItem> items = request.items().stream().map(i -> {
             OrderItem item = new OrderItem();
             item.setProductId(i.productId());
@@ -53,19 +52,15 @@ public class OrderServiceImpl implements OrderService {
 
         order.setItems(items);
 
-        // Создаём заказ со статусом NEW
         order.setStatus(OrderStatus.NEW);
         Order saved = orderRepository.save(order);
 
-        // Отправляем событие order.created
         kafkaTemplate.send(ORDER_CREATED_TOPIC, saved.getId().toString(), saved);
 
-        // Проверка наличия через gRPC и резерв
         boolean reserved;
         try {
             reserved = inventoryClient.reserveItems(saved.getId(), items);
         } catch (Exception e) {
-            // Сага-компенсация: отменяем заказ при ошибке резервирования
             saved.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(saved);
             kafkaTemplate.send(ORDER_STATUS_CHANGED_TOPIC, saved.getId().toString(), saved);
@@ -79,7 +74,6 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Not enough inventory, order cancelled");
         }
 
-        // Резерв успешно сделан
         saved.setStatus(OrderStatus.RESERVED);
         Order reservedOrder = orderRepository.save(saved);
         kafkaTemplate.send(ORDER_STATUS_CHANGED_TOPIC, reservedOrder.getId().toString(), reservedOrder);

@@ -6,7 +6,7 @@ spring:
     name: order-service
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/orderdb
+    url: jdbc:postgresql://localhost:5432/orderdb
     username: order
     password: order
     driver-class-name: org.postgresql.Driver
@@ -18,82 +18,68 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: false
+        show_sql: true
 
   kafka:
-    # Базовые настройки СТРОГО по ТЗ
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
 
-    # PRODUCER для order.created и order.status-changed (ТЗ п.7)
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       properties:
-        schema.registry.url: http://schema-registry:8081  # СТРОГО по ТЗ
+        schema.registry.url: http://localhost:8081
+        auto.register.schemas: true
 
-    # CONSUMER для inventory.reserved (ТЗ п.7)
     consumer:
       group-id: order-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
-        schema.registry.url: http://schema-registry:8081  # СТРОГО по ТЗ
-        specific.avro.reader: true  # Для Avro
+        schema.registry.url: http://localhost:8081
+        specific.avro.reader: true
 
-    # Топики СТРОГО по ТЗ п.7 (правильная структура!)
-    properties:
-      topic:
-        order-created: order.created
-        order-status-changed: order.status-changed
-        inventory-reserved: inventory.reserved
+    topics:
+      order-created: order.created
+      order-status-changed: order.status-changed
+      inventory-reserved: inventory.reserved
 
-# gRPC конфигурация
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
 grpc:
   client:
     inventory-service:
-      address: static://inventory-service:9092
-      negotiationType: plaintext
-      enableKeepAlive: true
+      address: static://localhost:9090
+      negotiation-type: plaintext
+      enable-keep-alive: true
 
   server:
     port: 9093
     enable-reflection: true
 
-# Observability
 management:
   endpoints:
     web:
       exposure:
         include: health, info, metrics, prometheus
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-    distribution:
-      percentiles-histogram:
-        "[http.server.requests]": true
+  tracing:
+    sampling:
+      probability: 1.0
 
-# Logging (для Loki)
 logging:
   level:
     root: INFO
     org.example.orderservice: DEBUG
-    org.apache.kafka: WARN
+    org.springframework.kafka: WARN
   pattern:
-    console: '{
-    "timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSS}", 
-    "level":"%p", "thread":"%t", "logger":"%c", 
-    "message":"%m", "traceId":"%X{traceId:-}",
-     "spanId":"%X{spanId:-}"}'  # ← Добавил traceId и spanId
+    console: '{"timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSS}", "level":"%p", "thread":"%t", "logger":"%c", "message":"%m", "traceId":"%X{traceId:-}", "spanId":"%X{spanId:-}"}'
 
-# OpenTelemetry (для Jaeger)
-otel:
-  exporter:
-    otlp:
-      endpoint: http://jaeger:4317
-      compression: gzip
-  resource:
-    attributes:
-      service.name: order-service
-      deployment.environment: ${ENVIRONMENT:local}
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html

@@ -3,7 +3,6 @@ package org.example.orderservice.service;
 import org.example.orderservice.dto.restdto.CreateOrderRequest;
 import org.example.orderservice.dto.restdto.CreateOrderResponse;
 import org.example.orderservice.dto.restdto.OrderResponse;
-import org.example.orderservice.entity.OrderStatus;
 
 import java.util.List;
 
