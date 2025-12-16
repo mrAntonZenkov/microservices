@@ -21,56 +21,79 @@ spring:
         show_sql: false
 
   kafka:
+    # Базовые настройки СТРОГО по ТЗ
     bootstrap-servers: kafka:9092
-    properties:
-      schema.registry.url: http://schema-registry:8081
 
+    # PRODUCER для order.created и order.status-changed (ТЗ п.7)
     producer:
-      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      properties:
+        schema.registry.url: http://schema-registry:8081  # СТРОГО по ТЗ
 
+    # CONSUMER для inventory.reserved (ТЗ п.7)
     consumer:
       group-id: order-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       properties:
-        specific.avro.reader: true
+        schema.registry.url: http://schema-registry:8081  # СТРОГО по ТЗ
+        specific.avro.reader: true  # Для Avro
 
+    # Топики СТРОГО по ТЗ п.7 (правильная структура!)
+    properties:
+      topic:
+        order-created: order.created
+        order-status-changed: order.status-changed
+        inventory-reserved: inventory.reserved
 
+# gRPC конфигурация
 grpc:
   client:
     inventory-service:
       address: static://inventory-service:9092
       negotiationType: plaintext
+      enableKeepAlive: true
 
   server:
     port: 9093
     enable-reflection: true
 
-
+# Observability
 management:
   endpoints:
     web:
       exposure:
-        include: health, prometheus
+        include: health, info, metrics, prometheus
   metrics:
     export:
       prometheus:
         enabled: true
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
 
-
+# Logging (для Loki)
 logging:
   level:
     root: INFO
+    org.example.orderservice: DEBUG
+    org.apache.kafka: WARN
   pattern:
-    console: '{"timestamp":"%d{yyyy-MM-dd HH:mm:ss}","level":"%p","logger":"%c","message":"%m"}'
+    console: '{
+    "timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSS}", 
+    "level":"%p", "thread":"%t", "logger":"%c", 
+    "message":"%m", "traceId":"%X{traceId:-}",
+     "spanId":"%X{spanId:-}"}'  # ← Добавил traceId и spanId
 
-
+# OpenTelemetry (для Jaeger)
 otel:
   exporter:
     otlp:
       endpoint: http://jaeger:4317
+      compression: gzip
   resource:
     attributes:
       service.name: order-service
+      deployment.environment: ${ENVIRONMENT:local}
