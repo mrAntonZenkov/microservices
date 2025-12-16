@@ -24,8 +24,20 @@ repositories {
 extra["springGrpcVersion"] = "0.12.0"
 
 dependencies {
-	implementation("io.grpc:grpc-services")
-	implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
+
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+
+	implementation("org.mapstruct:mapstruct:1.5.5.Final")
+	annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+
+	implementation(project(":common-grpc"))
+	implementation("org.springframework.grpc:spring-grpc-server-web-spring-boot-starter")
+	implementation("net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE")
+
 	implementation("org.springframework.kafka:spring-kafka")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
