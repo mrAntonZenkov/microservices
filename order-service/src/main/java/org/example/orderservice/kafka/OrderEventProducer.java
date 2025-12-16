@@ -1,58 +1,80 @@
-package org.example.orderservice.kafka;
-
-import org.example.orderservice.dto.kafkadto.OrderCreatedEvent;
-import org.example.orderservice.entity.OrderItem;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-@Component
-public class OrderEventProducer {
-
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
-    @Value("${spring.kafka.topics.order-created}")
-    private String orderCreatedTopic;
-
-    @Value("${spring.kafka.topics.order-status-changed}")
-    private String orderStatusChangedTopic;
-
-    public OrderEventProducer(KafkaTemplate<String, Object> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    public void sendOrderCreated(Long orderId, Long userId,
-                                 List<OrderItem> items) {
-        OrderCreatedEvent event = OrderCreatedEvent.newBuilder()
-                .setOrderId(orderId)
-                .setUserId(userId)
-                .setStatus("NEW")
-                .setItems(items.stream()
-                        .map(item -> org.example.orderservice.event.avro.OrderItem.newBuilder()
-                                .setProductId(item.getProductId())
-                                .setQuantity(item.getQuantity())
-                                .build())
-                        .collect(Collectors.toList()))
-                .setTimestamp(Instant.now().toString())
-                .build();
-
-        // Ключ: orderId как строка (СТРОГО по ТЗ п.7: "Key orderId")
-        kafkaTemplate.send(orderCreatedTopic, String.valueOf(orderId), event);
-    }
-
-    public void sendOrderStatusChanged(Long orderId, Long userId,
-                                       String oldStatus, String newStatus) {
-        OrderStatusChangedEvent event = OrderStatusChangedEvent.newBuilder()
-                .setOrderId(orderId)
-                .setUserId(userId)
-                .setOldStatus(oldStatus)
-                .setNewStatus(newStatus)
-                .setTimestamp(Instant.now().toString())
-                .build();
-
-        // Ключ: orderId как строка (СТРОГО по ТЗ п.7: "Key orderId")
-        kafkaTemplate.send(orderStatusChangedTopic, String.valueOf(orderId), event);
-    }
-}
+//package org.example.orderservice.kafka;
+//
+//import lombok.RequiredArgsConstructor;
+//import lombok.extern.slf4j.Slf4j;
+//import org.example.orderservice.avro.OrderCreated;
+//import org.example.orderservice.avro.OrderStatusChanged;
+//import org.example.orderservice.config.KafkaTopics;
+//import org.example.orderservice.entity.Order;
+//import org.example.orderservice.entity.OrderItem;
+//import org.springframework.kafka.core.KafkaTemplate;
+//import org.springframework.stereotype.Component;
+//
+//import java.time.Instant;
+//import java.util.stream.Collectors;
+//
+//@Component
+//public class OrderEventProducer {
+//
+//    private final KafkaTemplate<String, OrderCreated> orderCreatedKafkaTemplate;
+//    private final KafkaTemplate<String, OrderStatusChanged> orderStatusChangedKafkaTemplate;
+//    private final KafkaTopics kafkaTopics;
+//
+//    public void sendOrderCreated(Order order) {
+//        try {
+//            OrderCreated event = OrderCreated.newBuilder()
+//                    .setOrderId(order.getId())
+//                    .setUserId(order.getUserId())
+//                    .setItems(order.getItems().stream()
+//                            .map(this::toAvroOrderItem)
+//                            .collect(Collectors.toList()))
+//                    .setTimestamp(Instant.now().toString())
+//                    .build();
+//
+//            orderCreatedKafkaTemplate.send(
+//                    kafkaTopics.getOrderCreated(),
+//                    order.getId().toString(),
+//                    event
+//            );
+//
+//            log.info("Sent {} event for orderId: {}", kafkaTopics.getOrderCreated(), order.getId());
+//        } catch (Exception e) {
+//            log.error("Failed to send {} event for orderId: {}",
+//                    kafkaTopics.getOrderCreated(), order.getId(), e);
+//            throw new RuntimeException("Failed to publish " + kafkaTopics.getOrderCreated() + " event", e);
+//        }
+//    }
+//
+//    public void sendOrderStatusChanged(Long orderId, Long userId, String oldStatus, String newStatus) {
+//        try {
+//            OrderStatusChanged event = OrderStatusChanged.newBuilder()
+//                    .setOrderId(orderId)
+//                    .setUserId(userId)
+//                    .setOldStatus(oldStatus)
+//                    .setNewStatus(newStatus)
+//                    .setTimestamp(Instant.now().toString())
+//                    .build();
+//
+//            orderStatusChangedKafkaTemplate.send(
+//                    kafkaTopics.getOrderStatusChanged(),
+//                    orderId.toString(),
+//                    event
+//            );
+//
+//            log.info("Sent {} event for orderId: {}, {} -> {}",
+//                    kafkaTopics.getOrderStatusChanged(), orderId, oldStatus, newStatus);
+//        } catch (Exception e) {
+//            log.error("Failed to send {} event for orderId: {}",
+//                    kafkaTopics.getOrderStatusChanged(), orderId, e);
+//            throw new RuntimeException("Failed to publish " + kafkaTopics.getOrderStatusChanged() + " event", e);
+//        }
+//    }
+//
+//    private org.example.orderservice.avro.OrderItem toAvroOrderItem(OrderItem item) {
+//        return org.example.orderservice.avro.OrderItem.newBuilder()
+//                .setProductId(item.getProductId())
+//                .setQuantity(item.getQuantity())
+//                .setPrice(item.getPrice() != null ? item.getPrice() : 0L)
+//                .build();
+//    }
+//}

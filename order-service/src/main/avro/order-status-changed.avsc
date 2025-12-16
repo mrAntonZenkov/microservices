@@ -1,0 +1,12 @@
+{
+  "namespace": "org.example.orderservice.avro",
+  "type": "record",
+  "name": "OrderStatusChanged",
+  "fields": [
+    {"name": "orderId", "type": "long"},
+    {"name": "userId", "type": "long"},
+    {"name": "oldStatus", "type": "string"},
+    {"name": "newStatus", "type": "string"},
+    {"name": "timestamp", "type": "string"}
+  ]
+}

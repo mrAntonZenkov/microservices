@@ -1,6 +1,6 @@
 package org.example.orderservice.dto.restdto;
 
-import org.example.orderservice.dto.statusdto.OrderStatusDto;
+import org.example.orderservice.dto.OrderStatusDto;
 
 import java.util.List;
 
